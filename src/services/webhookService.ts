@@ -24,8 +24,10 @@ export class WebhookService {
         signal: controller.signal,
         mode: 'cors',
         headers: {
-          'Accept': 'audio/mpeg,application/json,*/*'
-        }
+          'Accept': 'audio/mpeg,application/json,*/*',
+          'Access-Control-Allow-Origin': '*'
+        },
+        credentials: 'omit'
       });
 
       console.log('Webhook response status:', response.status);
