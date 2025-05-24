@@ -80,6 +80,11 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
   const buttonState = getButtonState(voiceState.status, isWaitingForClick, t);
   const isDisabled = disabled || (voiceState.status !== 'idle' && !isWaitingForClick);
 
+  // Custom styles to override the microphone icon size
+  const customButtonStyle = {
+    '--mic-size': '24px'
+  } as React.CSSProperties;
+
   return (
     <div className="flex flex-col items-center space-y-4">
       <Button
@@ -92,8 +97,9 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
           isDisabled && 'opacity-70 cursor-not-allowed'
         )}
         size="lg"
+        style={customButtonStyle}
       >
-        <Mic className="w-8 h-8 text-white" />
+        <Mic className="text-white" style={{ width: '44px', height: '44px' }} strokeWidth={1.5} />
       </Button>
       
       <p className="text-sm font-medium text-gray-700 text-center">
