@@ -26,7 +26,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 flex flex-col h-screen overflow-hidden">
       {/* Header - narrow width like other sections */}
       <div className="max-w-sm mx-auto w-full px-2">
         <header className="bg-white/95 backdrop-blur-sm shadow-lg border-b border-orange-100 rounded-b-3xl">
