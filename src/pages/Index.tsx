@@ -91,7 +91,7 @@ const Index = () => {
       {/* Footer - narrow width */}
       <div className="max-w-sm mx-auto w-full px-2">
         <footer className="bg-white/80 backdrop-blur-sm border-t border-gray-200 py-3 rounded-t-xl">
-          <p className="text-xs text-gray-500 text-center font-medium">
+          <p className="text-sm text-gray-500 text-center font-medium">
             {t.footerText}
           </p>
         </footer>

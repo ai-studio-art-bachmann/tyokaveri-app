@@ -93,7 +93,7 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
         className={cn(
           'w-24 h-24 rounded-full transition-all duration-200',
           buttonState.color,
-          buttonState.pulse && 'animate-pulse',
+          buttonState.pulse && 'animate-slow-pulse',
           isDisabled && 'opacity-70 cursor-not-allowed'
         )}
         size="lg"
