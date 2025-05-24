@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tyokalu-app-v1';
+const CACHE_NAME = 'tyokalu-app-v2';
 const STATIC_CACHE_URLS = [
   '/',
   '/index.html',

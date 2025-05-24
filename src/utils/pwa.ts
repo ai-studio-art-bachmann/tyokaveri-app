@@ -2,7 +2,16 @@
 export const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
     try {
-      const registration = await navigator.serviceWorker.register('/sw.js');
+      // First, unregister any existing service worker to prevent cache issues
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const registration of registrations) {
+        await registration.unregister();
+        console.log('Service Worker unregistered successfully');
+      }
+      
+      // Then register the service worker with a cache-busting query parameter
+      const swUrl = `/sw.js?v=${new Date().getTime()}`;
+      const registration = await navigator.serviceWorker.register(swUrl);
       console.log('Service Worker registered successfully:', registration);
       
       // Handle updates
