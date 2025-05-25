@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { VoiceButton } from '@/components/VoiceButton';
 import { DynamicResponsePanel } from '@/components/DynamicResponsePanel';
 import { LanguageSelector } from '@/components/LanguageSelector';
+import { InteractionPanel } from '@/components/InteractionPanel';
 import { useConversation } from '@/hooks/useConversation';
 import { ConversationConfig } from '@/types/voice';
-import { Button } from '@/components/ui/button';
 import { getTranslations } from '@/utils/translations';
 
 const Index = () => {
@@ -61,31 +60,17 @@ const Index = () => {
           />
         </div>
 
-        {/* Voice Controls */}
-        <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-lg mt-4 mb-4">
-          <div className="p-6">
-            <div className="flex flex-col items-center space-y-4">
-              <VoiceButton
-                voiceState={conversation.voiceState}
-                onPress={conversation.handleVoiceInteraction}
-                disabled={conversation.isDisabled}
-                isWaitingForClick={conversation.isWaitingForClick}
-                language={config.language}
-              />
-              
-              {conversation.messages.length > 0 && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleReset}
-                  className="text-xs px-4 py-2 rounded-full border-orange-200 text-orange-600 hover:bg-orange-50 transition-colors"
-                >
-                  {t.resetConversation}
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
+        {/* Interaction Panel with Tabs for Voice, Camera, and Files */}
+        <InteractionPanel
+          voiceState={conversation.voiceState}
+          onVoiceInteraction={conversation.handleVoiceInteraction}
+          isVoiceDisabled={conversation.isDisabled}
+          isWaitingForClick={conversation.isWaitingForClick}
+          language={config.language}
+          webhookUrl={config.webhookUrl}
+          onReset={handleReset}
+          hasMessages={conversation.messages.length > 0}
+        />
       </div>
 
       {/* Footer - narrow width */}

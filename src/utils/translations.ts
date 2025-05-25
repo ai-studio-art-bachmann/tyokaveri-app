@@ -41,6 +41,33 @@ export interface Translations {
   unknownError: string;
   recordingFailed: string;
   noAudioDetected: string;
+
+  // Tab navigation
+  audioTab: string;
+  filesTab: string;
+  cameraTab: string;
+
+  // Camera component
+  startCamera: string;
+  takePhoto: string;
+  retakePhoto: string;
+  sendPhoto: string;
+  capturedPhoto: string;
+  cameraPlaceholder: string;
+  cameraError: string;
+  cameraPermissionDenied: string;
+  photoSent: string;
+  photoSentSuccess: string;
+
+  // File upload component
+  selectFile: string;
+  sendFile: string;
+  cancel: string;
+  dragDropFiles: string;
+  orClickToUpload: string;
+  selectedFile: string;
+  fileSent: string;
+  fileSentSuccess: string;
 }
 
 export const translations: Record<'fi' | 'et' | 'en', Translations> = {
@@ -72,7 +99,34 @@ export const translations: Record<'fi' | 'et' | 'en', Translations> = {
     tryAgain: 'Yritä uudelleen',
     unknownError: 'Tuntematon virhe',
     recordingFailed: 'Äänitallennus epäonnistui - ei ääntä havaittu',
-    noAudioDetected: 'Ei ääntä havaittu'
+    noAudioDetected: 'Ei ääntä havaittu',
+    
+    // Tab navigation
+    audioTab: 'Ääni',
+    filesTab: 'Tiedostot',
+    cameraTab: 'Kamera',
+    
+    // Camera component
+    startCamera: 'Käynnistä kamera',
+    takePhoto: 'Ota kuva',
+    retakePhoto: 'Ota uusi kuva',
+    sendPhoto: 'Lähetä kuva',
+    capturedPhoto: 'Otettu kuva',
+    cameraPlaceholder: 'Paina käynnistääksesi kameran',
+    cameraError: 'Kameravirhe',
+    cameraPermissionDenied: 'Kameran käyttöoikeus evätty',
+    photoSent: 'Kuva lähetetty',
+    photoSentSuccess: 'Kuva lähetetty onnistuneesti',
+    
+    // File upload component
+    selectFile: 'Valitse tiedosto',
+    sendFile: 'Lähetä tiedosto',
+    cancel: 'Peruuta',
+    dragDropFiles: 'Vedä ja pudota tiedostot tähän',
+    orClickToUpload: 'tai klikkaa valitaksesi',
+    selectedFile: 'Valittu tiedosto',
+    fileSent: 'Tiedosto lähetetty',
+    fileSentSuccess: 'Tiedosto lähetetty onnistuneesti'
   },
   et: {
     headerTitle: 'Nutikas abi ehitusplatsile!',
@@ -102,7 +156,34 @@ export const translations: Record<'fi' | 'et' | 'en', Translations> = {
     tryAgain: 'Proovi uuesti',
     unknownError: 'Tundmatu viga',
     recordingFailed: 'Helisalvestus ebaõnnestus - heli ei tuvastatud',
-    noAudioDetected: 'Heli ei tuvastatud'
+    noAudioDetected: 'Heli ei tuvastatud',
+    
+    // Tab navigation
+    audioTab: 'Hääl',
+    filesTab: 'Tiedostot',
+    cameraTab: 'Kaamera',
+    
+    // Camera component
+    startCamera: 'Käivita kaamera',
+    takePhoto: 'Tee pilt',
+    retakePhoto: 'Tee uus pilt',
+    sendPhoto: 'Saada pilt',
+    capturedPhoto: 'Tehtud pilt',
+    cameraPlaceholder: 'Vajuta kaamera käivitamiseks',
+    cameraError: 'Kaamera viga',
+    cameraPermissionDenied: 'Kaamera kasutamise õigus keelatud',
+    photoSent: 'Pilt saadetud',
+    photoSentSuccess: 'Pilt edukalt saadetud',
+    
+    // File upload component
+    selectFile: 'Vali fail',
+    sendFile: 'Saada fail',
+    cancel: 'Tühista',
+    dragDropFiles: 'Lohista ja kukuta failid siia',
+    orClickToUpload: 'või klõpsa valimiseks',
+    selectedFile: 'Valitud fail',
+    fileSent: 'Fail saadetud',
+    fileSentSuccess: 'Fail edukalt saadetud'
   },
   en: {
     headerTitle: 'Smart help for construction sites!',
@@ -132,7 +213,34 @@ export const translations: Record<'fi' | 'et' | 'en', Translations> = {
     tryAgain: 'Try again',
     unknownError: 'Unknown error',
     recordingFailed: 'Audio recording failed - no audio detected',
-    noAudioDetected: 'No audio detected'
+    noAudioDetected: 'No audio detected',
+    
+    // Tab navigation
+    audioTab: 'Audio',
+    filesTab: 'Files',
+    cameraTab: 'Camera',
+    
+    // Camera component
+    startCamera: 'Start camera',
+    takePhoto: 'Take photo',
+    retakePhoto: 'Retake photo',
+    sendPhoto: 'Send photo',
+    capturedPhoto: 'Captured photo',
+    cameraPlaceholder: 'Press to start camera',
+    cameraError: 'Camera error',
+    cameraPermissionDenied: 'Camera permission denied',
+    photoSent: 'Photo sent',
+    photoSentSuccess: 'Photo sent successfully',
+    
+    // File upload component
+    selectFile: 'Select file',
+    sendFile: 'Send file',
+    cancel: 'Cancel',
+    dragDropFiles: 'Drag and drop files here',
+    orClickToUpload: 'or click to upload',
+    selectedFile: 'Selected file',
+    fileSent: 'File sent',
+    fileSentSuccess: 'File sent successfully'
   }
 };
 

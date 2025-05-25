@@ -1,6 +1,52 @@
 
-// Track whether we've shown the update notification
-let updateNotificationShown = false;
+// Store update preferences in local storage
+const UPDATE_PREFERENCES_KEY = 'app_update_preferences';
+const LAST_UPDATE_CHECK_KEY = 'app_last_update_check';
+
+// Get update preferences from local storage
+const getUpdatePreferences = () => {
+  try {
+    const preferences = localStorage.getItem(UPDATE_PREFERENCES_KEY);
+    return preferences ? JSON.parse(preferences) : { autoUpdate: false, lastDecision: null };
+  } catch (error) {
+    console.error('Error reading update preferences:', error);
+    return { autoUpdate: false, lastDecision: null };
+  }
+};
+
+// Save update preferences to local storage
+const saveUpdatePreferences = (preferences) => {
+  try {
+    localStorage.setItem(UPDATE_PREFERENCES_KEY, JSON.stringify(preferences));
+  } catch (error) {
+    console.error('Error saving update preferences:', error);
+  }
+};
+
+// Check if we should show update notification based on time since last check
+const shouldShowUpdateNotification = () => {
+  try {
+    const lastCheck = localStorage.getItem(LAST_UPDATE_CHECK_KEY);
+    if (!lastCheck) return true;
+    
+    // Only show update notification once per day if user previously declined
+    const oneDayInMs = 24 * 60 * 60 * 1000;
+    const lastCheckTime = parseInt(lastCheck, 10);
+    return Date.now() - lastCheckTime > oneDayInMs;
+  } catch (error) {
+    console.error('Error checking last update time:', error);
+    return true;
+  }
+};
+
+// Update the last check time
+const updateLastCheckTime = () => {
+  try {
+    localStorage.setItem(LAST_UPDATE_CHECK_KEY, Date.now().toString());
+  } catch (error) {
+    console.error('Error updating last check time:', error);
+  }
+};
 
 export const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
@@ -10,82 +56,143 @@ export const registerServiceWorker = async () => {
       const registration = await navigator.serviceWorker.register(swUrl);
       console.log('Service Worker registered successfully:', registration);
       
-      // Check if there's already a controller (page reload with active SW)
-      if (navigator.serviceWorker.controller) {
-        console.log('Service Worker is already controlling this page');
-      }
+      // Get stored preferences
+      const preferences = getUpdatePreferences();
       
-      // Handle updates - this is for future updates after the page has loaded
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-        console.log('New service worker found:', newWorker?.state);
-        
-        if (newWorker) {
-          newWorker.addEventListener('statechange', () => {
-            console.log('Service worker state changed:', newWorker.state);
-            
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller && !updateNotificationShown) {
-              // New content is available and waiting
-              updateNotificationShown = true;
-              console.log('New version available!');
-              
-              if (window.confirm('Uusi versio saatavilla. Päivitä nyt?')) {
-                console.log('User confirmed update, sending SKIP_WAITING message');
-                
-                // Add a listener for controlling change to reload the page BEFORE sending the message
-                let reloadingPage = false;
-                navigator.serviceWorker.addEventListener('controllerchange', () => {
-                  if (reloadingPage) return;
-                  reloadingPage = true;
-                  console.log('New service worker activated, reloading page');
-                  window.location.reload();
-                });
-                
-                // Then send message to the service worker to skip waiting
-                setTimeout(() => {
-                  newWorker.postMessage({ type: 'SKIP_WAITING' });
-                }, 500);
-              } else {
-                // Reset flag if user cancels
-                updateNotificationShown = false;
-              }
-            }
-          });
+      // Listen for messages from the service worker
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'SW_UPDATED') {
+          console.log('Received SW_UPDATED message from service worker');
         }
       });
       
-      // Also handle the case where a new service worker is waiting on load
-      if (registration.waiting && navigator.serviceWorker.controller && !updateNotificationShown) {
-        updateNotificationShown = true;
-        console.log('New version waiting on page load!');
-        
-        if (window.confirm('Uusi versio saatavilla. Päivitä nyt?')) {
-          console.log('User confirmed update for waiting worker, sending SKIP_WAITING message');
-          
-          // Add a listener for controlling change to reload the page BEFORE sending the message
-          let reloadingPage = false;
-          navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (reloadingPage) return;
-            reloadingPage = true;
-            console.log('New service worker activated, reloading page');
-            window.location.reload();
-          });
-          
-          // Then send message to the service worker to skip waiting
-          setTimeout(() => {
-            registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-          }, 500);
-        } else {
-          // Reset flag if user cancels
-          updateNotificationShown = false;
-        }
-      }
+      // Set up update handling
+      setupUpdateHandling(registration, preferences);
       
       return registration;
     } catch (error) {
       console.error('Service Worker registration failed:', error);
     }
   }
+};
+
+// Handle service worker updates
+const setupUpdateHandling = (registration, preferences) => {
+  // Handle updates for new service workers that appear after page load
+  registration.addEventListener('updatefound', () => {
+    const newWorker = registration.installing;
+    console.log('New service worker found:', newWorker?.state);
+    
+    if (newWorker) {
+      newWorker.addEventListener('statechange', () => {
+        console.log('Service worker state changed:', newWorker.state);
+        
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          handleNewServiceWorker(newWorker, preferences);
+        }
+      });
+    }
+  });
+  
+  // Handle the case where a service worker is already waiting when the page loads
+  if (registration.waiting && navigator.serviceWorker.controller) {
+    console.log('Service worker already waiting on page load');
+    handleNewServiceWorker(registration.waiting, preferences);
+  }
+};
+
+// Handle a new service worker that's ready to take over
+const handleNewServiceWorker = (worker, preferences) => {
+  // If user has opted for auto-updates, apply the update silently
+  if (preferences.autoUpdate) {
+    console.log('Auto-updating based on user preferences');
+    applyUpdate(worker);
+    return;
+  }
+  
+  // Check if we should show the notification based on last check time
+  if (!shouldShowUpdateNotification()) {
+    console.log('Skipping update notification based on previous decision');
+    return;
+  }
+  
+  // Show update notification
+  console.log('New version available!');
+  
+  // Create custom update notification instead of using window.confirm
+  const updateContainer = document.createElement('div');
+  updateContainer.id = 'update-notification';
+  updateContainer.style.position = 'fixed';
+  updateContainer.style.top = '20px';
+  updateContainer.style.left = '50%';
+  updateContainer.style.transform = 'translateX(-50%)';
+  updateContainer.style.backgroundColor = 'white';
+  updateContainer.style.padding = '16px';
+  updateContainer.style.borderRadius = '8px';
+  updateContainer.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+  updateContainer.style.zIndex = '9999';
+  updateContainer.style.maxWidth = '90%';
+  updateContainer.style.width = '320px';
+  updateContainer.style.textAlign = 'center';
+  
+  updateContainer.innerHTML = `
+    <p style="margin: 0 0 16px 0; font-weight: bold;">Uusi versio saatavilla. Päivitä nyt?</p>
+    <div style="display: flex; justify-content: space-between;">
+      <button id="update-later" style="padding: 8px 16px; border: 1px solid #ccc; background: #f5f5f5; border-radius: 4px; cursor: pointer;">Myöhemmin</button>
+      <button id="update-now" style="padding: 8px 16px; background: #4285f4; color: white; border: none; border-radius: 4px; cursor: pointer;">Päivitä nyt</button>
+    </div>
+    <label style="display: block; margin-top: 12px; font-size: 14px;">
+      <input type="checkbox" id="auto-update-checkbox" ${preferences.autoUpdate ? 'checked' : ''}>
+      Päivitä automaattisesti jatkossa
+    </label>
+  `;
+  
+  document.body.appendChild(updateContainer);
+  
+  // Update now button
+  document.getElementById('update-now')?.addEventListener('click', () => {
+    // Save preference
+    const checkbox = document.getElementById('auto-update-checkbox') as HTMLInputElement;
+    const autoUpdate = checkbox ? checkbox.checked : false;
+    saveUpdatePreferences({ autoUpdate, lastDecision: 'accepted' });
+    
+    // Remove notification
+    document.body.removeChild(updateContainer);
+    
+    // Apply update
+    applyUpdate(worker);
+  });
+  
+  // Update later button
+  document.getElementById('update-later')?.addEventListener('click', () => {
+    // Save preference
+    const checkbox = document.getElementById('auto-update-checkbox') as HTMLInputElement;
+    const autoUpdate = checkbox ? checkbox.checked : false;
+    saveUpdatePreferences({ autoUpdate, lastDecision: 'declined' });
+    
+    // Update last check time
+    updateLastCheckTime();
+    
+    // Remove notification
+    document.body.removeChild(updateContainer);
+  });
+};
+
+// Apply the update by sending SKIP_WAITING to the service worker
+const applyUpdate = (worker) => {
+  console.log('Applying update...');
+  
+  // Set up reload listener before sending the message
+  let reloadingPage = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloadingPage) return;
+    reloadingPage = true;
+    console.log('New service worker activated, reloading page');
+    window.location.reload();
+  });
+  
+  // Send the message to skip waiting
+  worker.postMessage({ type: 'SKIP_WAITING' });
 };
 
 export const showInstallPrompt = () => {
