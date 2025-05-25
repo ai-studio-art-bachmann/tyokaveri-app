@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Camera, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getTranslations } from '@/utils/translations';
@@ -17,87 +17,64 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
   const { toast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [stream, setStream] = useState<MediaStream | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
-  // Start camera
-  const startCamera = async () => {
+  // Start camera using useCallback from the example
+  const startCamera = useCallback(async () => {
     console.log('startCamera function called');
     try {
-      console.log('Attempting to access camera...');
+      const constraints = {
+        video: { facingMode: 'environment' }
+      };
       
-      // Check if mediaDevices is supported
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Camera API not supported in this browser');
-      }
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream;
       
-      // First try to access the environment camera (back camera on mobile)
-      try {
-        const mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' },
-          audio: false
-        });
-        
-        console.log('Back camera access granted');
-        if (videoRef.current) {
-          videoRef.current.srcObject = mediaStream;
-          videoRef.current.onloadedmetadata = () => {
-            console.log('Video metadata loaded');
-            if (videoRef.current) videoRef.current.play();
-          };
-          setStream(mediaStream);
-          setIsCameraActive(true);
-          console.log('Camera is now active');
-        }
-      } catch (envError) {
-        // If environment camera fails, try with default camera
-        console.log('Back camera failed, trying default camera', envError);
-        const mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false
-        });
-        
-        console.log('Default camera access granted');
-        if (videoRef.current) {
-          videoRef.current.srcObject = mediaStream;
-          videoRef.current.onloadedmetadata = () => {
-            console.log('Video metadata loaded');
-            if (videoRef.current) videoRef.current.play();
-          };
-          setStream(mediaStream);
-          setIsCameraActive(true);
-          console.log('Camera is now active');
-        }
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.onloadedmetadata = () => {
+          if (videoRef.current) videoRef.current.play();
+        };
+        setIsCameraActive(true);
+        console.log('Camera is now active');
       }
-    } catch (error) {
-      console.error('Error accessing camera:', error);
+    } catch (err) {
+      console.error('Error accessing the camera:', err);
       toast({
         title: t.cameraError,
-        description: typeof error === 'object' && error !== null ? (error as Error).message : t.cameraPermissionDenied,
+        description: t.cameraPermissionDenied,
         variant: 'destructive'
       });
     }
-  };
+  }, [t, toast]);
 
   // Stop camera
-  const stopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
-      setIsCameraActive(false);
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
     }
-  };
+    
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    
+    setIsCameraActive(false);
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      stopCamera();
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
     };
   }, []);
 
   // Take photo
-  const takePhoto = () => {
+  const takePhoto = useCallback(() => {
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
@@ -119,25 +96,27 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
         stopCamera();
       }
     }
-  };
+  }, [stopCamera]);
 
   // Retake photo
-  const retakePhoto = () => {
+  const retakePhoto = useCallback(() => {
     setCapturedImage(null);
     startCamera();
-  };
+  }, [startCamera]);
 
   // Send photo
-  const sendPhoto = () => {
+  const sendPhoto = useCallback(() => {
     if (capturedImage) {
       onPhotoCapture(capturedImage);
       toast({
         title: t.photoSent,
         description: t.photoSentSuccess
       });
+      
+      // Reset after sending
       setCapturedImage(null);
     }
-  };
+  }, [capturedImage, onPhotoCapture, t, toast]);
 
   return (
     <div className="flex flex-col items-center w-full">
@@ -148,9 +127,8 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
             ref={videoRef}
             autoPlay
             playsInline
-            muted={true} /* Required for autoplay on some mobile browsers */
+            muted={true} /* Required for autoplay on mobile browsers */
             className="w-full h-full object-cover"
-            style={{ transform: 'scaleX(1)' }} /* Fix potential mirroring issues */
           />
         )}
         
@@ -177,16 +155,9 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
       <div className="flex justify-center space-x-3 w-full">
         {!isCameraActive && !capturedImage && (
           <Button 
-            onClick={(e) => {
-              e.preventDefault(); // Prevent default button behavior
-              console.log('Camera button clicked');
-              // Add a small delay to help Android process the click event
-              setTimeout(() => {
-                startCamera();
-              }, 100);
-            }}
+            onClick={() => startCamera()}
             className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-6"
-            type="button" // Explicitly set button type
+            type="button"
           >
             {t.startCamera}
           </Button>
@@ -196,6 +167,7 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
           <Button 
             onClick={takePhoto}
             className="bg-red-500 hover:bg-red-600 text-white rounded-full px-6"
+            type="button"
           >
             {t.takePhoto}
           </Button>
@@ -207,6 +179,7 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
               onClick={retakePhoto}
               variant="outline"
               className="rounded-full px-4"
+              type="button"
             >
               <X size={16} className="mr-1" />
               {t.retakePhoto}
@@ -215,6 +188,7 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
             <Button 
               onClick={sendPhoto}
               className="bg-green-500 hover:bg-green-600 text-white rounded-full px-6"
+              type="button"
             >
               {t.sendPhoto}
             </Button>
