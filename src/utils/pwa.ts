@@ -30,14 +30,21 @@ export const registerServiceWorker = async () => {
               console.log('New version available!');
               
               if (window.confirm('Uusi versio saatavilla. Päivitä nyt?')) {
-                // Send message to the service worker to skip waiting
-                newWorker.postMessage({ type: 'SKIP_WAITING' });
+                console.log('User confirmed update, sending SKIP_WAITING message');
                 
-                // Add a listener for controlling change to reload the page
+                // Add a listener for controlling change to reload the page BEFORE sending the message
+                let reloadingPage = false;
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
+                  if (reloadingPage) return;
+                  reloadingPage = true;
                   console.log('New service worker activated, reloading page');
                   window.location.reload();
                 });
+                
+                // Then send message to the service worker to skip waiting
+                setTimeout(() => {
+                  newWorker.postMessage({ type: 'SKIP_WAITING' });
+                }, 500);
               } else {
                 // Reset flag if user cancels
                 updateNotificationShown = false;
@@ -53,12 +60,21 @@ export const registerServiceWorker = async () => {
         console.log('New version waiting on page load!');
         
         if (window.confirm('Uusi versio saatavilla. Päivitä nyt?')) {
-          registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+          console.log('User confirmed update for waiting worker, sending SKIP_WAITING message');
           
+          // Add a listener for controlling change to reload the page BEFORE sending the message
+          let reloadingPage = false;
           navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (reloadingPage) return;
+            reloadingPage = true;
             console.log('New service worker activated, reloading page');
             window.location.reload();
           });
+          
+          // Then send message to the service worker to skip waiting
+          setTimeout(() => {
+            registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+          }, 500);
         } else {
           // Reset flag if user cancels
           updateNotificationShown = false;

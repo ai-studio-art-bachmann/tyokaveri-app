@@ -112,7 +112,21 @@ self.addEventListener('message', (event) => {
   
   if (event.data && event.data.type === 'SKIP_WAITING') {
     console.log('Service Worker skipping waiting phase');
-    self.skipWaiting();
+    // Force immediate activation
+    self.skipWaiting().then(() => {
+      console.log('skipWaiting completed, now claiming clients');
+      // Explicitly claim clients to ensure the update takes effect
+      self.clients.claim().then(() => {
+        console.log('All clients claimed by new service worker');
+        
+        // Notify all clients that the worker has been updated
+        self.clients.matchAll().then(clients => {
+          clients.forEach(client => {
+            client.postMessage({ type: 'SW_UPDATED' });
+          });
+        });
+      });
+    });
   }
 });
 
