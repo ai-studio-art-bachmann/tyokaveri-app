@@ -23,16 +23,20 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
 
   // Start camera
   const startCamera = async () => {
+    console.log('startCamera function called');
     try {
+      console.log('Attempting to access camera...');
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' },
         audio: false
       });
       
+      console.log('Camera access granted, setting up video stream');
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
         setStream(mediaStream);
         setIsCameraActive(true);
+        console.log('Camera is now active');
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
@@ -139,7 +143,10 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
       <div className="flex justify-center space-x-3 w-full">
         {!isCameraActive && !capturedImage && (
           <Button 
-            onClick={startCamera}
+            onClick={() => {
+              console.log('Camera button clicked');
+              startCamera();
+            }}
             className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-6"
           >
             {t.startCamera}

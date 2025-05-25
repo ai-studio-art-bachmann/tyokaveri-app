@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { VoiceButton } from '@/components/VoiceButton';
 import { CameraComponent } from '@/components/CameraComponent';
 import { FileUploadComponent } from '@/components/FileUploadComponent';
@@ -35,6 +35,7 @@ export const InteractionPanel: React.FC<InteractionPanelProps> = ({
   const { toast } = useToast();
 
   const handleTabChange = (tab: TabType) => {
+    console.log(`Tab changed to: ${tab}`);
     setActiveTab(tab);
   };
 
@@ -88,6 +89,11 @@ export const InteractionPanel: React.FC<InteractionPanelProps> = ({
     }
   };
 
+  // Log the current active tab for debugging
+  useEffect(() => {
+    console.log(`Active tab in InteractionPanel: ${activeTab}`);
+  }, [activeTab]);
+
   return (
     <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-lg mt-2 mb-4">
       <TabSelector 
@@ -121,6 +127,7 @@ export const InteractionPanel: React.FC<InteractionPanelProps> = ({
             </>
           )}
           
+          {/* Camera tab */}
           {activeTab === 'camera' && (
             <CameraComponent 
               language={language}
@@ -128,6 +135,7 @@ export const InteractionPanel: React.FC<InteractionPanelProps> = ({
             />
           )}
           
+          {/* Files tab */}
           {activeTab === 'files' && (
             <FileUploadComponent 
               language={language}

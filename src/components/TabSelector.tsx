@@ -19,8 +19,8 @@ export const TabSelector: React.FC<TabSelectorProps> = ({
   
   const tabs = [
     { id: 'audio' as const, label: t.audioTab },
-    { id: 'files' as const, label: t.filesTab },
-    { id: 'camera' as const, label: t.cameraTab }
+    { id: 'camera' as const, label: t.cameraTab },
+    { id: 'files' as const, label: t.filesTab }
   ];
 
   return (
@@ -28,7 +28,10 @@ export const TabSelector: React.FC<TabSelectorProps> = ({
       {tabs.map((tab) => (
         <button
           key={tab.id}
-          onClick={() => onTabChange(tab.id)}
+          onClick={() => {
+            console.log(`Tab button clicked: ${tab.id}, label: ${tab.label}`);
+            onTabChange(tab.id);
+          }}
           className={cn(
             "flex-1 text-center py-3 font-medium text-sm transition-colors",
             currentTab === tab.id

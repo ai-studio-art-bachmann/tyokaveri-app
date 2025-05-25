@@ -1,12 +1,12 @@
-const CACHE_NAME = 'tyokalu-app-v2';
+const CACHE_NAME = 'tyokalu-app-v4';  // Updated version
 const STATIC_CACHE_URLS = [
   '/',
   '/index.html',
   '/manifest.json',
   '/female-greeting.mp3',
-  '/favicon.ico',
-  '/favicon-192.png',
-  '/favicon-512.png'
+  '/icons/favicon.ico',
+  '/icons/maskable-192.png',
+  '/icons/maskable-512.png'
 ];
 
 // Install event - cache static resources
@@ -130,7 +130,7 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Background sync for offline audio uploads
+// Background sync for offline uploads
 self.addEventListener('sync', (event) => {
   if (event.tag === 'upload-audio') {
     console.log('Background sync: upload-audio');
@@ -138,7 +138,18 @@ self.addEventListener('sync', (event) => {
       // Handle offline audio uploads when connection is restored
       self.registration.showNotification('Työkalu App', {
         body: 'Yhteys palautettu. Voit jatkaa äänikeskustelua.',
-        icon: '/favicon-192.png'
+        icon: '/icons/maskable-192.png'
+      })
+    );
+  }
+  
+  if (event.tag === 'upload-file' || event.tag === 'upload-photo') {
+    console.log('Background sync:', event.tag);
+    event.waitUntil(
+      // Handle offline file uploads when connection is restored
+      self.registration.showNotification('Työkalu App', {
+        body: 'Yhteys palautettu. Tiedostot lähetetään.',
+        icon: '/icons/maskable-192.png'
       })
     );
   }

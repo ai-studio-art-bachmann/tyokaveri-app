@@ -41,7 +41,9 @@ export const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
 
   // Trigger file input click
   const handleUploadClick = () => {
+    console.log('File upload button clicked');
     if (fileInputRef.current) {
+      console.log('Triggering file input click');
       fileInputRef.current.click();
     }
   };
@@ -139,7 +141,10 @@ export const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
       <div className="flex justify-center space-x-3 w-full mt-3">
         {!selectedFile ? (
           <Button 
-            onClick={handleUploadClick}
+            onClick={() => {
+              console.log('File select button in UI clicked');
+              handleUploadClick();
+            }}
             className="bg-orange-500 hover:bg-orange-600 text-white rounded-full px-6"
           >
             {t.selectFile}
