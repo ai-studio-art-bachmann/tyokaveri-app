@@ -106,7 +106,7 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
   return (
     <div className="flex flex-col items-center w-full">
       {/* Camera preview or captured image */}
-      <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden mb-4">
+      <div className="relative w-full h-32 sm:h-40 bg-gray-100 rounded-lg overflow-hidden mb-3">
         {isCameraActive && (
           <video
             ref={videoRef}

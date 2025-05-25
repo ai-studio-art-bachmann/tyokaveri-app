@@ -98,7 +98,7 @@ export const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
       {/* File preview area */}
       <div className="w-full mb-4">
         {previewUrl ? (
-          <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
+          <div className="relative w-full h-32 sm:h-40 bg-gray-100 rounded-lg overflow-hidden">
             <img 
               src={previewUrl} 
               alt={selectedFile?.name || t.selectedFile} 
@@ -114,7 +114,7 @@ export const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
         ) : (
           <div 
             onClick={handleUploadClick}
-            className="w-full h-48 bg-gray-100 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors"
+            className="w-full h-32 sm:h-40 bg-gray-100 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors"
           >
             <Upload size={48} className="text-gray-400 mb-2" />
             <p className="text-gray-500 text-sm">{t.dragDropFiles}</p>
