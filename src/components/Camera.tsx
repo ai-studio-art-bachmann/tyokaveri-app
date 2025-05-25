@@ -147,9 +147,9 @@ export const Camera: React.FC<CameraProps> = ({ webhookUrl, language }) => {
   }, []);
 
   return (
-    <div className="flex flex-col items-center space-y-4">
+    <div className="flex flex-col items-center space-y-3">
       {!photoTaken ? (
-        <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
+        <div className="relative w-full h-32 sm:h-40 bg-black rounded-lg overflow-hidden">
           <video
             ref={videoRef}
             autoPlay
@@ -169,11 +169,11 @@ export const Camera: React.FC<CameraProps> = ({ webhookUrl, language }) => {
           )}
         </div>
       ) : (
-        <div className="relative w-full rounded-lg overflow-hidden">
+        <div className="relative w-full h-32 sm:h-40 bg-gray-100 rounded-lg overflow-hidden">
           <img 
             src={photoTaken} 
             alt="Captured" 
-            className="w-full" 
+            className="w-full h-full object-contain" 
           />
         </div>
       )}

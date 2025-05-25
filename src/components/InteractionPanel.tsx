@@ -79,8 +79,8 @@ export const InteractionPanel: React.FC<InteractionPanelProps> = ({
         language={language} 
       />
       
-      <div className="p-3 sm:p-4">
-        <div className="flex flex-col items-center space-y-3">
+      <div className="p-2 sm:p-3">
+        <div className="flex flex-col items-center space-y-2">
           {activeTab === 'audio' && (
             <>
               <VoiceButton
