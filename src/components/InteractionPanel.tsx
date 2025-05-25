@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { VoiceButton } from '@/components/VoiceButton';
-import { CameraComponent } from '@/components/CameraComponent';
+import { Camera } from '@/components/Camera';
 import { FileUploadComponent } from '@/components/FileUploadComponent';
 import { TabSelector, TabType } from '@/components/TabSelector';
 import { Button } from '@/components/ui/button';
 import { getTranslations } from '@/utils/translations';
 import { VoiceState } from '@/types/voice';
-import { uploadFile, uploadPhoto } from '@/services/uploadService';
+import { uploadFile } from '@/services/uploadService';
 import { useToast } from '@/components/ui/use-toast';
 
 interface InteractionPanelProps {
@@ -39,30 +39,7 @@ export const InteractionPanel: React.FC<InteractionPanelProps> = ({
     setActiveTab(tab);
   };
 
-  const handlePhotoCapture = async (photoData: string) => {
-    try {
-      const success = await uploadPhoto(photoData, webhookUrl);
-      if (success) {
-        toast({
-          title: t.photoSent,
-          description: t.photoSentSuccess
-        });
-      } else {
-        toast({
-          title: t.unknownError,
-          description: 'Failed to upload photo',
-          variant: 'destructive'
-        });
-      }
-    } catch (error) {
-      console.error('Error uploading photo:', error);
-      toast({
-        title: t.unknownError,
-        description: 'Error uploading photo',
-        variant: 'destructive'
-      });
-    }
-  };
+  // Photo handling is now integrated in the Camera component
 
   const handleFileUpload = async (file: File) => {
     try {
@@ -129,9 +106,9 @@ export const InteractionPanel: React.FC<InteractionPanelProps> = ({
           
           {/* Camera tab */}
           {activeTab === 'camera' && (
-            <CameraComponent 
+            <Camera 
               language={language}
-              onPhotoCapture={handlePhotoCapture}
+              webhookUrl={webhookUrl}
             />
           )}
           
