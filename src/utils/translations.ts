@@ -45,7 +45,7 @@ export interface Translations {
 
 export const translations: Record<'fi' | 'et' | 'en', Translations> = {
   fi: {
-    headerTitle: 'Työmiehen paras kaveri!',
+    headerTitle: 'Älykästä apua työmaalle!',
     headerSubtitle: 'Ääniohjattu työkalu rakennustyömaalle',
     startConversation: 'Aloita keskustelu',
     greetingInProgress: 'Tervehdys käynnissä...',
@@ -75,7 +75,7 @@ export const translations: Record<'fi' | 'et' | 'en', Translations> = {
     noAudioDetected: 'Ei ääntä havaittu'
   },
   et: {
-    headerTitle: 'Töömehe parim sõber!',
+    headerTitle: 'Nutikas abi ehitusplatsile!',
     headerSubtitle: 'Häälega juhitav tööriist ehitusplatsile',
     startConversation: 'Alusta vestlust',
     greetingInProgress: 'Tervitus käib...',
@@ -105,7 +105,7 @@ export const translations: Record<'fi' | 'et' | 'en', Translations> = {
     noAudioDetected: 'Heli ei tuvastatud'
   },
   en: {
-    headerTitle: 'Worker\'s Best Friend!',
+    headerTitle: 'Smart help for construction sites!',
     headerSubtitle: 'Voice-controlled tool for construction sites',
     startConversation: 'Start conversation',
     greetingInProgress: 'Greeting in progress...',

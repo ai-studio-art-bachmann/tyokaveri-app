@@ -1,33 +1,69 @@
 
+// Track whether we've shown the update notification
+let updateNotificationShown = false;
+
 export const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
     try {
-      // First, unregister any existing service worker to prevent cache issues
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      for (const registration of registrations) {
-        await registration.unregister();
-        console.log('Service Worker unregistered successfully');
-      }
-      
-      // Then register the service worker with a cache-busting query parameter
+      // Register the service worker with a cache-busting query parameter
       const swUrl = `/sw.js?v=${new Date().getTime()}`;
       const registration = await navigator.serviceWorker.register(swUrl);
       console.log('Service Worker registered successfully:', registration);
       
-      // Handle updates
+      // Check if there's already a controller (page reload with active SW)
+      if (navigator.serviceWorker.controller) {
+        console.log('Service Worker is already controlling this page');
+      }
+      
+      // Handle updates - this is for future updates after the page has loaded
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
+        console.log('New service worker found:', newWorker?.state);
+        
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New content is available
+            console.log('Service worker state changed:', newWorker.state);
+            
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller && !updateNotificationShown) {
+              // New content is available and waiting
+              updateNotificationShown = true;
+              console.log('New version available!');
+              
               if (window.confirm('Uusi versio saatavilla. Päivitä nyt?')) {
-                window.location.reload();
+                // Send message to the service worker to skip waiting
+                newWorker.postMessage({ type: 'SKIP_WAITING' });
+                
+                // Add a listener for controlling change to reload the page
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                  console.log('New service worker activated, reloading page');
+                  window.location.reload();
+                });
+              } else {
+                // Reset flag if user cancels
+                updateNotificationShown = false;
               }
             }
           });
         }
       });
+      
+      // Also handle the case where a new service worker is waiting on load
+      if (registration.waiting && navigator.serviceWorker.controller && !updateNotificationShown) {
+        updateNotificationShown = true;
+        console.log('New version waiting on page load!');
+        
+        if (window.confirm('Uusi versio saatavilla. Päivitä nyt?')) {
+          registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+          
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            console.log('New service worker activated, reloading page');
+            window.location.reload();
+          });
+        } else {
+          // Reset flag if user cancels
+          updateNotificationShown = false;
+        }
+      }
       
       return registration;
     } catch (error) {

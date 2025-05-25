@@ -4,13 +4,17 @@ const STATIC_CACHE_URLS = [
   '/index.html',
   '/manifest.json',
   '/female-greeting.mp3',
-  '/icon-192.png',
-  '/icon-512.png'
+  '/favicon.ico',
+  '/favicon-192.png',
+  '/favicon-512.png'
 ];
 
 // Install event - cache static resources
 self.addEventListener('install', (event) => {
   console.log('Service Worker installing...');
+  // Force the waiting service worker to become the active service worker
+  self.skipWaiting();
+  
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -19,27 +23,32 @@ self.addEventListener('install', (event) => {
       })
       .then(() => {
         console.log('Static resources cached');
-        return self.skipWaiting();
       })
   );
 });
 
-// Activate event - clean old caches
+// Activate event - clean old caches and take control immediately
 self.addEventListener('activate', (event) => {
   console.log('Service Worker activating...');
+  
+  // Take control of all clients immediately
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    }).then(() => {
-      console.log('Service Worker activated');
-      return self.clients.claim();
+    Promise.all([
+      // Clean old caches
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              console.log('Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      }),
+      // Take control of all clients immediately
+      self.clients.claim()
+    ]).then(() => {
+      console.log('Service Worker activated and claimed all clients');
     })
   );
 });
@@ -97,6 +106,16 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
+// Message handler for update commands
+self.addEventListener('message', (event) => {
+  console.log('Service Worker received message:', event.data);
+  
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('Service Worker skipping waiting phase');
+    self.skipWaiting();
+  }
+});
+
 // Background sync for offline audio uploads
 self.addEventListener('sync', (event) => {
   if (event.tag === 'upload-audio') {
@@ -105,7 +124,7 @@ self.addEventListener('sync', (event) => {
       // Handle offline audio uploads when connection is restored
       self.registration.showNotification('Työkalu App', {
         body: 'Yhteys palautettu. Voit jatkaa äänikeskustelua.',
-        icon: '/icon-192.png'
+        icon: '/favicon-192.png'
       })
     );
   }
