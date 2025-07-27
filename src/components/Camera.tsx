@@ -28,13 +28,44 @@ export const Camera: React.FC<CameraProps> = ({ webhookUrl, language }) => {
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        setIsCameraOn(true);
+        videoRef.current.onloadedmetadata = () => {
+          if (videoRef.current && videoRef.current.videoWidth > 0 && videoRef.current.videoHeight > 0) {
+            setIsCameraOn(true);
+          } else {
+            console.error("Video loaded but has no valid dimensions.");
+            toast({
+              title: t.cameraError,
+              description: t.videoNoDimensionsError,
+              variant: "destructive"
+            });
+            if (streamRef.current) {
+              streamRef.current.getTracks().forEach(track => track.stop());
+              streamRef.current = null;
+            }
+            if (videoRef.current) videoRef.current.srcObject = null;
+            setIsCameraOn(false);
+          }
+        };
+        videoRef.current.onerror = () => {
+            console.error("Error loading video metadata.");
+            toast({
+              title: t.cameraError,
+              description: t.videoLoadError,
+              variant: "destructive"
+            });
+            if (streamRef.current) {
+              streamRef.current.getTracks().forEach(track => track.stop());
+              streamRef.current = null;
+            }
+            if (videoRef.current) videoRef.current.srcObject = null;
+            setIsCameraOn(false);
+        };
       }
     } catch (err) {
       console.error("Error accessing the camera:", err);
       toast({
-        title: t.cameraError || "Camera Error",
-        description: t.cameraPermissionDenied || "Could not access the camera. Please grant permission.",
+        title: t.cameraError,
+        description: t.cameraPermissionDenied,
         variant: "destructive"
       });
     }
@@ -81,6 +112,17 @@ export const Camera: React.FC<CameraProps> = ({ webhookUrl, language }) => {
   
   const uploadPhoto = useCallback(async () => {
     if (!photoTaken) return;
+
+    if (!webhookUrl || typeof webhookUrl !== 'string' || (!webhookUrl.startsWith('http://') && !webhookUrl.startsWith('https://'))) {
+      console.error('Invalid or missing webhookUrl for upload:', webhookUrl);
+      toast({
+        title: t.uploadError,
+        description: t.invalidWebhookUrl,
+        variant: "destructive",
+      });
+      setIsUploading(false);
+      return;
+    }
     
     setIsUploading(true);
     
@@ -118,8 +160,8 @@ export const Camera: React.FC<CameraProps> = ({ webhookUrl, language }) => {
       console.log('Photo upload response:', data);
       
       toast({
-        title: t.photoSent || "Photo uploaded",
-        description: t.photoSentSuccess || "Photo was uploaded successfully",
+        title: t.photoSent,
+        description: t.photoSentSuccess,
       });
       
       // Reset photo
@@ -128,8 +170,8 @@ export const Camera: React.FC<CameraProps> = ({ webhookUrl, language }) => {
     } catch (error) {
       console.error('Photo upload error:', error);
       toast({
-        title: t.uploadError || "Upload Error",
-        description: error instanceof Error ? error.message : t.unknownError || "Unknown error",
+        title: t.uploadError,
+        description: error instanceof Error ? error.message : t.unknownError,
         variant: "destructive",
       });
     } finally {
@@ -183,17 +225,17 @@ export const Camera: React.FC<CameraProps> = ({ webhookUrl, language }) => {
       <div className="flex flex-wrap gap-2 justify-center">
         {!isCameraOn && !photoTaken && (
           <Button onClick={startCamera} className="bg-blue-500 hover:bg-blue-600" type="button">
-            {t.startCamera || "Start Camera"}
+            {t.startCamera}
           </Button>
         )}
         
         {isCameraOn && !photoTaken && (
           <>
             <Button onClick={takePhoto} className="bg-red-500 hover:bg-red-600" type="button">
-              {t.takePhoto || "Take Photo"}
+              {t.takePhoto}
             </Button>
             <Button onClick={stopCamera} variant="outline" type="button">
-              {t.stopCamera || "Stop Camera"}
+              {t.stopCamera}
             </Button>
           </>
         )}
@@ -206,13 +248,10 @@ export const Camera: React.FC<CameraProps> = ({ webhookUrl, language }) => {
               className="bg-green-500 hover:bg-green-600"
               type="button"
             >
-              {isUploading ? 
-                (t.uploading || "Uploading...") : 
-                (t.sendPhoto || "Send Photo")
-              }
+              {isUploading ? t.uploading : t.sendPhoto}
             </Button>
             <Button onClick={resetPhoto} variant="outline" disabled={isUploading} type="button">
-              {t.retakePhoto || "Retake"}
+              {t.retakePhoto}
             </Button>
           </>
         )}
